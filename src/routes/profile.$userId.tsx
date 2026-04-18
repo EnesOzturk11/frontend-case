@@ -6,9 +6,49 @@ import {
 } from '../components/ui/avatar'
 import { Button } from '../components/ui/button'
 
-export const Route = createFileRoute('/profile')({
+export const Route = createFileRoute('/profile/$userId')({
   component: ProfilePage,
 })
+
+type Profile = {
+  name: string
+  role: string
+  lastSeen: string
+  location: string
+  sector: string
+  avatar: string
+  initials: string
+}
+
+const PROFILE_BY_USER_ID: Partial<Record<string, Profile>> = {
+  'aidan-thorne': {
+    name: 'Aidan Thorne',
+    role: 'Intelligence Asset',
+    lastSeen: '12 mins ago',
+    location: 'Ankara Citadel',
+    sector: 'Sector 4, Upper Level Concourse',
+    avatar: 'https://i.pravatar.cc/150?img=8',
+    initials: 'AT',
+  },
+  'elias-vance': {
+    name: 'Elias Vance',
+    role: 'Field Operative',
+    lastSeen: '31 mins ago',
+    location: 'Ankara Metro Hub',
+    sector: 'Sector 2, Transit Hall',
+    avatar: 'https://i.pravatar.cc/150?img=30',
+    initials: 'EV',
+  },
+  'sara-voss': {
+    name: 'Sara Voss',
+    role: 'Signals Analyst',
+    lastSeen: '1 hour ago',
+    location: 'Kizilay Control Point',
+    sector: 'Sector 1, Signal Deck',
+    avatar: 'https://i.pravatar.cc/150?img=47',
+    initials: 'SV',
+  },
+}
 
 const MESSAGES = [
   {
@@ -93,6 +133,26 @@ function SectionTitle({
 }
 
 function ProfilePage() {
+  const { userId } = Route.useParams()
+  const profile = PROFILE_BY_USER_ID[userId] ?? {
+    name: userId
+      .split('-')
+      .filter(Boolean)
+      .map((part) => part[0]!.toUpperCase() + part.slice(1))
+      .join(' '),
+    role: 'Unknown Asset',
+    lastSeen: 'Unknown',
+    location: 'Ankara',
+    sector: 'Unassigned Sector',
+    avatar: '',
+    initials: userId
+      .split('-')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]!.toUpperCase())
+      .join('') || 'UA',
+  }
+
   return (
     <main className="flex flex-1 flex-col overflow-y-auto">
       {/* ── Header ── */}
@@ -105,11 +165,11 @@ function ProfilePage() {
             <div className="relative shrink-0">
               <Avatar className="h-20 w-20 ring-4 ring-[var(--lagoon)]/30 md:h-24 md:w-24">
                 <AvatarImage
-                  src="https://i.pravatar.cc/150?img=8"
-                  alt="Aidan Thorne"
+                  src={profile.avatar}
+                  alt={profile.name}
                 />
                 <AvatarFallback className="bg-[var(--surface-strong)] text-[var(--sea-ink)] text-2xl font-bold">
-                  AT
+                  {profile.initials}
                 </AvatarFallback>
               </Avatar>
               <StatusDot />
@@ -117,16 +177,16 @@ function ProfilePage() {
 
             <div>
               <h1 className="display-title text-3xl font-bold tracking-tight text-[var(--sea-ink)] md:text-4xl">
-                Aidan Thorne
+                {profile.name}
               </h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                 <span className="font-medium text-[var(--sea-ink-soft)]">
-                  Intelligence Asset
+                  {profile.role}
                 </span>
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--sea-ink-soft)]/40" />
                 <span className="flex items-center gap-1 rounded-full bg-[var(--surface-strong)] px-3 py-0.5 text-xs uppercase tracking-wider text-[var(--sea-ink-soft)]">
                   <span className="material-symbols-outlined text-[13px]">schedule</span>
-                  Active — Last Seen 12 mins ago
+                  Active - Last Seen {profile.lastSeen}
                 </span>
               </div>
             </div>
@@ -174,10 +234,10 @@ function ProfilePage() {
 
                 <div className="relative z-10 flex flex-col gap-3">
                   <h3 className="display-title text-3xl font-extrabold tracking-tight text-[var(--sea-ink)]">
-                    Ankara Citadel
+                    {profile.location}
                   </h3>
                   <p className="text-sm font-medium text-[var(--sea-ink-soft)]">
-                    Sector 4, Upper Level Concourse
+                    {profile.sector}
                   </p>
 
                   <div className="mt-2 border-t border-[var(--line)] pt-4">

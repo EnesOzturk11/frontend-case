@@ -5,23 +5,43 @@ import { Avatar as AvatarPrimitive } from "radix-ui"
 
 import { cn } from "#/lib/utils"
 
+const AvatarNameContext = React.createContext<string | undefined>(undefined)
+
+function getInitials(name?: string) {
+  if (!name) return "?"
+
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+
+  if (parts.length === 0) return "?"
+  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase()
+
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+}
+
 function Avatar({
   className,
   size = "default",
+  name,
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Root> & {
   size?: "default" | "sm" | "lg"
+  name?: string
 }) {
   return (
-    <AvatarPrimitive.Root
-      data-slot="avatar"
-      data-size={size}
-      className={cn(
-        "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
-        className
-      )}
-      {...props}
-    />
+    <AvatarNameContext.Provider value={name}>
+      <AvatarPrimitive.Root
+        data-slot="avatar"
+        data-size={size}
+        className={cn(
+          "group/avatar relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:border-border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten",
+          className
+        )}
+        {...props}
+      />
+    </AvatarNameContext.Provider>
   )
 }
 
@@ -43,8 +63,16 @@ function AvatarImage({
 
 function AvatarFallback({
   className,
+  name,
+  children,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+}: React.ComponentProps<typeof AvatarPrimitive.Fallback> & {
+  name?: string
+}) {
+  const inheritedName = React.useContext(AvatarNameContext)
+  const resolvedName = name ?? inheritedName
+  const content = children ?? getInitials(resolvedName)
+
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
@@ -53,7 +81,9 @@ function AvatarFallback({
         className
       )}
       {...props}
-    />
+    >
+      {content}
+    </AvatarPrimitive.Fallback>
   )
 }
 

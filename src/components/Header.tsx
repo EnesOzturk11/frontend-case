@@ -54,17 +54,18 @@ export default function Header() {
             className="nav-link"
             activeProps={{ className: 'nav-link is-active' }}
           >
-            Home
+            Checkins
           </Link>
           <Link
-            to="/about"
+            to="/messages"
             className="nav-link"
             activeProps={{ className: 'nav-link is-active' }}
           >
-            About
+            Messages
           </Link>
           <Link
-            to="/profile"
+            to="/profile/$userId"
+            params={{ userId: 'aidan-thorne' }}
             className="nav-link"
             activeProps={{ className: 'nav-link is-active' }}
           >

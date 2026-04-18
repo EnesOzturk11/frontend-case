@@ -2,38 +2,46 @@ import { createFileRoute } from '@tanstack/react-router'
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 import { divIcon } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { InfoCardContent } from '#/components/InfoCard'
-import type { InfoCardData } from '#/components/InfoCard'
+import { MessageCardContent } from '#/components/MessageCard'
+import type { MessageCardData } from '#/components/MessageCard'
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/messages')({
+  component: RouteComponent,
+})
 
-const DEMO_CHECKINS: InfoCardData[] = [
+const DEMO_MESSAGES: MessageCardData[] = [
   {
-    profileName: 'Aidan Thorne',
-    profileAvatar: 'https://i.pravatar.cc/150?img=8',
-    profileInitials: 'AT',
+    senderName: 'Aidan Thorne',
+    senderAvatar: 'https://i.pravatar.cc/150?img=8',
+    senderInitials: 'AT',
+    recipientName: 'Sara Voss',
     coordinates: [39.9334, 32.8597],
     location: 'Ankara Citadel',
     timestamp: '2026-04-18T10:24:00Z',
-    notes: 'Observed unusual frequency shift near sector 7.',
+    text: 'Frequency anomaly detected near sector 7. Proceeding with caution.',
+    urgency: 'high',
   },
   {
-    profileName: 'Elias Vance',
-    profileAvatar: 'https://i.pravatar.cc/150?img=30',
-    profileInitials: 'EV',
+    senderName: 'Elias Vance',
+    senderAvatar: 'https://i.pravatar.cc/150?img=30',
+    senderInitials: 'EV',
+    recipientName: 'Aidan Thorne',
     coordinates: [39.925, 32.866],
     location: 'Ankara Metro Hub',
     timestamp: '2026-04-18T09:10:00Z',
-    notes: undefined,
+    text: 'Arrived at metro hub. Awaiting further instructions.',
+    urgency: 'normal',
   },
   {
-    profileName: 'Sara Voss',
-    profileAvatar: 'https://i.pravatar.cc/150?img=47',
-    profileInitials: 'SV',
+    senderName: 'Sara Voss',
+    senderAvatar: 'https://i.pravatar.cc/150?img=47',
+    senderInitials: 'SV',
+    recipientName: 'Elias Vance',
     coordinates: [39.94, 32.852],
     location: 'Kizilay Control Point',
     timestamp: '2026-04-18T08:45:00Z',
-    notes: 'Signal deck sweep completed. All clear.',
+    text: 'Signal deck sweep completed. All clear on my end.',
+    urgency: 'low',
   },
 ]
 
@@ -46,7 +54,7 @@ const pinIcon = divIcon({
       box-shadow:0 4px 14px rgba(123,208,255,.45);
       border:2px solid var(--foam,#131b2e);
     ">
-      <span class="material-symbols-outlined" style="font-size:15px;color:var(--foam,#131b2e)">location_on</span>
+      <span class="material-symbols-outlined" style="font-size:15px;color:var(--foam,#131b2e)">chat</span>
     </div>
     <div style="width:2px;height:8px;background:var(--lagoon,#7bd0ff);border-radius:0 0 2px 2px;opacity:.85"></div>
   </div>`,
@@ -56,7 +64,7 @@ const pinIcon = divIcon({
   popupAnchor: [0, -42],
 })
 
-function App() {
+function RouteComponent() {
   return (
     <main className="relative h-[calc(100vh-var(--header-height,57px))] w-full">
       <MapContainer
@@ -69,10 +77,10 @@ function App() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {DEMO_CHECKINS.map((checkin) => (
+        {DEMO_MESSAGES.map((message) => (
           <Marker
-            key={checkin.profileName}
-            position={checkin.coordinates}
+            key={`${message.senderName}-${message.timestamp}`}
+            position={message.coordinates}
             icon={pinIcon}
           >
             <Popup
@@ -80,7 +88,7 @@ function App() {
               maxWidth={288}
               className="checkin-popup"
             >
-              <InfoCardContent checkin={checkin} />
+              <MessageCardContent checkin={message} />
             </Popup>
           </Marker>
         ))}
