@@ -1,11 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { MapContainer, TileLayer } from 'react-leaflet'
+import 'leaflet/dist/leaflet.css'
 
 export const Route = createFileRoute('/')({ component: App })
 
 function App() {
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <section className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
+    <main className="page-wrap relative min-h-screen">
+      {/* Map Background */}
+      <div className="absolute inset-0 z-0 h-full w-full">
+        <MapContainer
+          center={[39.9334, 32.8597]}
+          zoom={12}
+          className="h-full w-full"
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap contributors'
+          />
+        </MapContainer>
+      </div>
+
+      {/* Content Overlay */}
+      <div className="relative z-10 px-4 pb-8 pt-14">
+      <section className="island-shell rise-in relative overflow-hidden rounded-[2rem] bg-white/95 backdrop-blur px-6 py-10 sm:px-10 sm:py-14">
         <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(79,184,178,0.32),transparent_66%)]" />
         <div className="pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(47,106,74,0.18),transparent_66%)]" />
         <p className="island-kicker mb-3">TanStack Start Base Template</p>
@@ -55,7 +73,7 @@ function App() {
         ].map(([title, desc], index) => (
           <article
             key={title}
-            className="island-shell feature-card rise-in rounded-2xl p-5"
+            className="island-shell feature-card rise-in rounded-2xl bg-white/95 backdrop-blur p-5"
             style={{ animationDelay: `${index * 90 + 80}ms` }}
           >
             <h2 className="mb-2 text-base font-semibold text-[var(--sea-ink)]">
@@ -66,7 +84,7 @@ function App() {
         ))}
       </section>
 
-      <section className="island-shell mt-8 rounded-2xl p-6">
+      <section className="island-shell mt-8 rounded-2xl bg-white/95 backdrop-blur p-6">
         <p className="island-kicker mb-2">Quick Start</p>
         <ul className="m-0 list-disc space-y-2 pl-5 text-sm text-[var(--sea-ink-soft)]">
           <li>
@@ -82,6 +100,7 @@ function App() {
           </li>
         </ul>
       </section>
+      </div>
     </main>
   )
 }
