@@ -9,8 +9,8 @@ Please fill in your information after forking this repository:
 Map-based check-in tracking app centered on Ankara, with popup info cards and dynamic user profile pages built with React, TanStack Router, and Leaflet.
 
 ## Getting Started
-npm install
-npm run dev
+- npm install
+- npm run dev
 
 # 🚀 Challenge Duyurusu
 
