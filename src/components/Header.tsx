@@ -77,6 +77,13 @@ export default function Header() {
           >
             Sightings
           </Link>
+                    <Link
+            to="/tips"
+            className="nav-link"
+            activeProps={{ className: 'nav-link is-active' }}
+          >
+            Anonymous Tips
+          </Link>
         </div>
       </nav>
     </header>

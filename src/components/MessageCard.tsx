@@ -18,7 +18,7 @@ export type MessageCardData = {
   location: string // human-readable location name
   timestamp: string // ISO string or display-ready label
   text: string
-  urgency?: 'low' | 'normal' | 'high'
+  urgency?: 'low' | 'medium' | 'high'
 }
 
 function formatCoords([lat, lng]: [number, number]) {
@@ -40,7 +40,7 @@ function formatTimestamp(ts: string) {
 
 const urgencyConfig = {
   low: { label: 'Low', color: 'text-(--sea-ink-soft)' },
-  normal: { label: 'Normal', color: 'text-(--lagoon)' },
+  medium: { label: 'Medium', color: 'text-(--lagoon)' },
   high: { label: 'High', color: 'text-red-400' },
 }
 
@@ -59,7 +59,7 @@ export function MessageCardContent({ checkin }: Readonly<{ checkin: MessageCardD
     urgency,
   } = checkin
 
-  const urg = urgencyConfig[urgency ?? 'normal']
+  const urg = urgencyConfig[urgency ?? 'medium']
 
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl bg-(--surface) text-(--sea-ink) ring-1 ring-(--chip-line)">

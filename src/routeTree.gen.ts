@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TipsRouteImport } from './routes/tips'
 import { Route as SightingsRouteImport } from './routes/sightings'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as MessagesRouteImport } from './routes/messages'
@@ -16,6 +17,11 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
 
+const TipsRoute = TipsRouteImport.update({
+  id: '/tips',
+  path: '/tips',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SightingsRoute = SightingsRouteImport.update({
   id: '/sightings',
   path: '/sightings',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof MessagesRoute
   '/notes': typeof NotesRoute
   '/sightings': typeof SightingsRoute
+  '/tips': typeof TipsRoute
   '/profile/$userId': typeof ProfileUserIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/messages': typeof MessagesRoute
   '/notes': typeof NotesRoute
   '/sightings': typeof SightingsRoute
+  '/tips': typeof TipsRoute
   '/profile/$userId': typeof ProfileUserIdRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/messages': typeof MessagesRoute
   '/notes': typeof NotesRoute
   '/sightings': typeof SightingsRoute
+  '/tips': typeof TipsRoute
   '/profile/$userId': typeof ProfileUserIdRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/notes'
     | '/sightings'
+    | '/tips'
     | '/profile/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/notes'
     | '/sightings'
+    | '/tips'
     | '/profile/$userId'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/notes'
     | '/sightings'
+    | '/tips'
     | '/profile/$userId'
   fileRoutesById: FileRoutesById
 }
@@ -105,11 +117,19 @@ export interface RootRouteChildren {
   MessagesRoute: typeof MessagesRoute
   NotesRoute: typeof NotesRoute
   SightingsRoute: typeof SightingsRoute
+  TipsRoute: typeof TipsRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tips': {
+      id: '/tips'
+      path: '/tips'
+      fullPath: '/tips'
+      preLoaderRoute: typeof TipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sightings': {
       id: '/sightings'
       path: '/sightings'
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   MessagesRoute: MessagesRoute,
   NotesRoute: NotesRoute,
   SightingsRoute: SightingsRoute,
+  TipsRoute: TipsRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
 }
 export const routeTree = rootRouteImport
