@@ -5,37 +5,43 @@ import 'leaflet/dist/leaflet.css'
 import { InfoCardContent } from '#/components/InfoCard'
 import type { InfoCardData } from '#/components/InfoCard'
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({
+  loader: async () => {
+    const res = await fetch(
+      'https://api.jotform.com/form/261065067494966/submissions?apikey=ad39735f1449a6dc28d60e0921352665',
+    )
+    const json = await res.json()
+    const checkins: InfoCardData[] = (json.content ?? []).map(
+      (submission: {
+        answers: Record<string, { name: string; answer?: string }>
+      }) => {
+        const byName = (name: string) =>
+          Object.values(submission.answers).find((a) => a.name === name)
+            ?.answer ?? ''
 
-const DEMO_CHECKINS: InfoCardData[] = [
-  {
-    profileName: 'Aidan Thorne',
-    profileAvatar: 'https://i.pravatar.cc/150?img=8',
-    profileInitials: 'AT',
-    coordinates: [39.9334, 32.8597],
-    location: 'Ankara Citadel',
-    timestamp: '2026-04-18T10:24:00Z',
-    notes: 'Observed unusual frequency shift near sector 7.',
+        const personName = byName('personName')
+        const rawCoords = byName('coordinates')
+        const [lat, lng] = rawCoords.split(',').map(Number)
+
+        return {
+          personName,
+          profileInitials: personName
+            .split(' ')
+            .map((w: string) => w[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2),
+          coordinates: [lat, lng] as [number, number],
+          location: byName('location'),
+          timestamp: byName('timestamp'),
+          notes: byName('note') || undefined,
+        } satisfies InfoCardData
+      },
+    )
+    return { checkins }
   },
-  {
-    profileName: 'Elias Vance',
-    profileAvatar: 'https://i.pravatar.cc/150?img=30',
-    profileInitials: 'EV',
-    coordinates: [39.925, 32.866],
-    location: 'Ankara Metro Hub',
-    timestamp: '2026-04-18T09:10:00Z',
-    notes: undefined,
-  },
-  {
-    profileName: 'Sara Voss',
-    profileAvatar: 'https://i.pravatar.cc/150?img=47',
-    profileInitials: 'SV',
-    coordinates: [39.94, 32.852],
-    location: 'Kizilay Control Point',
-    timestamp: '2026-04-18T08:45:00Z',
-    notes: 'Signal deck sweep completed. All clear.',
-  },
-]
+  component: App,
+})
 
 const pinIcon = divIcon({
   html: `<div style="display:flex;flex-direction:column;align-items:center;">
@@ -56,7 +62,36 @@ const pinIcon = divIcon({
   popupAnchor: [0, -42],
 })
 
+// Spread markers sharing the same coordinates in a small spiral so all are clickable
+function spreadCoordinates(
+  checkins: InfoCardData[],
+): (InfoCardData & { displayCoords: [number, number] })[] {
+  const RADIUS = 0.0003 // ~33m offset per step
+  const counts = new Map<string, number>()
+
+  return checkins.map((checkin) => {
+    const key = `${checkin.coordinates[0].toFixed(5)},${checkin.coordinates[1].toFixed(5)}`
+    const idx = counts.get(key) ?? 0
+    counts.set(key, idx + 1)
+
+    if (idx === 0) return { ...checkin, displayCoords: checkin.coordinates }
+
+    const angle = (idx * (2 * Math.PI)) / 8
+    const r = RADIUS * Math.ceil(idx / 8)
+    return {
+      ...checkin,
+      displayCoords: [
+        checkin.coordinates[0] + r * Math.cos(angle),
+        checkin.coordinates[1] + r * Math.sin(angle),
+      ] as [number, number],
+    }
+  })
+}
+
 function App() {
+  const { checkins } = Route.useLoaderData()
+  const spread = spreadCoordinates(checkins)
+
   return (
     <main className="relative h-[calc(100vh-var(--header-height,57px))] w-full">
       <MapContainer
@@ -69,17 +104,13 @@ function App() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {DEMO_CHECKINS.map((checkin) => (
+        {spread.map((checkin) => (
           <Marker
-            key={checkin.profileName}
-            position={checkin.coordinates}
+            key={`${checkin.personName}-${checkin.coordinates[0]}-${checkin.coordinates[1]}`}
+            position={checkin.displayCoords}
             icon={pinIcon}
           >
-            <Popup
-              minWidth={288}
-              maxWidth={288}
-              className="checkin-popup"
-            >
+            <Popup minWidth={288} maxWidth={288} className="checkin-popup">
               <InfoCardContent checkin={checkin} />
             </Popup>
           </Marker>

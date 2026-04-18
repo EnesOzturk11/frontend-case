@@ -10,8 +10,8 @@ import {
 } from '#/components/ui/popover'
 
 export type InfoCardData = {
-  profileName: string
-  profileAvatar?: string
+  personName: string
+  personAvatar?: string
   profileInitials: string
   coordinates: [number, number] // [lat, lng]
   location: string // human-readable location name
@@ -40,8 +40,8 @@ function formatTimestamp(ts: string) {
 
 export function InfoCardContent({ checkin }: Readonly<{ checkin: InfoCardData }>) {
   const {
-    profileName,
-    profileAvatar,
+    personName,
+    personAvatar,
     profileInitials,
     coordinates,
     location,
@@ -54,14 +54,14 @@ export function InfoCardContent({ checkin }: Readonly<{ checkin: InfoCardData }>
       {/* Header — avatar  |  name + coords */}
       <div className="flex items-start gap-3 border-b border-(--line) px-4 py-4">
         <Avatar className="h-11 w-11 shrink-0 ring-2 ring-(--lagoon)/30">
-          {profileAvatar && <AvatarImage src={profileAvatar} alt={profileName} />}
+          {personAvatar && <AvatarImage src={personAvatar} alt={personName} />}
           <AvatarFallback className="bg-(--surface-strong) text-xs font-bold text-(--sea-ink)">
             {profileInitials}
           </AvatarFallback>
         </Avatar>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate font-bold leading-snug text-(--sea-ink)">{profileName}</p>
+          <p className="truncate font-bold leading-snug text-(--sea-ink)">{personName}</p>
           <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-(--lagoon)">
             <span className="material-symbols-outlined text-[13px]">my_location</span>
             <span className="font-mono tracking-tight">{formatCoords(coordinates)}</span>
@@ -148,7 +148,7 @@ export function InfoCard({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        {trigger ?? <PinButton label={checkin.profileName} />}
+        {trigger ?? <PinButton label={checkin.personName} />}
       </PopoverTrigger>
 
       <PopoverContent
