@@ -5,42 +5,42 @@ import 'leaflet/dist/leaflet.css'
 import { TipCardContent } from '#/components/TipCard'
 import type { TipCardData } from '#/components/TipCard'
 
+const FORM_ID = '261065875889981'
+const API_KEY = 'ad39735f1449a6dc28d60e0921352665'
+
+async function fetchTips(): Promise<TipCardData[]> {
+  const res = await fetch(
+    `https://api.jotform.com/form/${FORM_ID}/submissions?apikey=${API_KEY}&limit=100`,
+  )
+  const json = await res.json()
+  const submissions: Array<{ created_at: string; answers: Record<string, { name: string; answer: unknown }> }> =
+    json.content ?? []
+
+  return submissions
+    .filter((s) => s.answers)
+    .map((s) => {
+      const a = s.answers
+      const coordStr = String(a[4]?.answer ?? '')
+      const [lat, lng] = coordStr.split(',').map(Number)
+      const confidence = String(a[7]?.answer ?? 'low') as TipCardData['confidence']
+
+      return {
+        submissionDate: s.created_at,
+        timestamp: String(a[2]?.answer ?? ''),
+        location: String(a[3]?.answer ?? ''),
+        coordinates: [lat || 39.9334, lng || 32.8597],
+        suspectName: String(a[5]?.answer ?? 'Unknown'),
+        tip: String(a[6]?.answer ?? ''),
+        confidence: ['low', 'medium', 'high'].includes(confidence) ? confidence : 'low',
+        reporterName: 'Anonymous',
+      }
+    })
+}
+
 export const Route = createFileRoute('/tips')({
+  loader: fetchTips,
   component: RouteComponent,
 })
-
-const DEMO_TIPS: TipCardData[] = [
-  {
-    submissionDate: '2026-04-17T09:15:00Z',
-    timestamp: '2026-04-17T02:30:00Z',
-    location: 'Kızılay Square, Ankara',
-    coordinates: [39.9208, 32.8541],
-    suspectName: 'Viktor Kasparov',
-    tip: 'Seen exchanging a black briefcase near the fountain at around 2:30 AM. Wore a dark coat and kept looking over his shoulder.',
-    confidence: 'high',
-    reporterName: 'Anonymous',
-  },
-  {
-    submissionDate: '2026-04-16T18:45:00Z',
-    timestamp: '2026-04-16T14:00:00Z',
-    location: 'Atatürk Cultural Center',
-    coordinates: [39.9334, 32.8597],
-    suspectName: 'Unknown Male',
-    tip: 'A man matching the description was seen taking photos of the back entrance repeatedly.',
-    confidence: 'medium',
-    reporterName: 'Security Guard',
-  },
-  {
-    submissionDate: '2026-04-15T22:10:00Z',
-    timestamp: '2026-04-15T21:00:00Z',
-    location: 'Tunalı Hilmi Street',
-    coordinates: [39.9072, 32.8627],
-    suspectName: 'Lena Marchetti',
-    tip: 'Overheard a phone conversation referencing a pickup location and a time. Voice matched the description from previous reports.',
-    confidence: 'low',
-    reporterName: 'Café Owner',
-  },
-]
 
 const pinIcon = divIcon({
   html: `<div style="display:flex;flex-direction:column;align-items:center;">
@@ -62,6 +62,8 @@ const pinIcon = divIcon({
 })
 
 function RouteComponent() {
+  const tips = Route.useLoaderData()
+
   return (
     <main className="relative h-[calc(100vh-var(--header-height,57px))] w-full">
       <MapContainer
@@ -74,7 +76,7 @@ function RouteComponent() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {DEMO_TIPS.map((tip) => (
+        {tips.map((tip) => (
           <Marker
             key={`${tip.suspectName}-${tip.timestamp}`}
             position={tip.coordinates}

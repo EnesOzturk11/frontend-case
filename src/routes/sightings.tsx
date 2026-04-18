@@ -5,39 +5,35 @@ import 'leaflet/dist/leaflet.css'
 import { SightingsCardContent } from '#/components/SightingsCard'
 import type { SightingsCardData } from '#/components/SightingsCard'
 
+const API_KEY = 'ad39735f1449a6dc28d60e0921352665'
+const FORM_ID = '261065244786967'
+
+async function fetchSightings(): Promise<SightingsCardData[]> {
+  const res = await fetch(
+    `https://api.jotform.com/form/${FORM_ID}/submissions?apikey=${API_KEY}&limit=100`,
+  )
+  const data = await res.json()
+
+  return (data.content as Array<{ answers: Record<string, { name: string; answer?: string }> }>)
+    .filter((s) => s.answers['6']?.answer)
+    .map((s) => {
+      const a = s.answers
+      const [lat, lng] = (a['6'].answer ?? '0,0').split(',').map(Number)
+      return {
+        personName: a['2']?.answer ?? 'Unknown',
+        seenWith: a['3']?.answer ?? 'Unknown',
+        timestamp: a['4']?.answer ?? '',
+        location: a['5']?.answer ?? '',
+        coordinates: [lat, lng] as [number, number],
+        note: a['7']?.answer ?? '',
+      }
+    })
+}
+
 export const Route = createFileRoute('/sightings')({
+  loader: fetchSightings,
   component: RouteComponent,
 })
-
-const DEMO_SIGHTINGS: SightingsCardData[] = [
-  {
-    personName: 'Aidan Thorne',
-    personAvatar: 'https://i.pravatar.cc/150?img=8',
-    seenWith: 'Sara Voss',
-    coordinates: [39.9334, 32.8597],
-    location: 'Ankara Citadel',
-    timestamp: '2026-04-18T10:24:00Z',
-    note: 'Both individuals observed entering the citadel grounds near the east gate.',
-  },
-  {
-    personName: 'Elias Vance',
-    personAvatar: 'https://i.pravatar.cc/150?img=30',
-    seenWith: 'Unknown contact',
-    coordinates: [39.925, 32.866],
-    location: 'Ankara Metro Hub',
-    timestamp: '2026-04-18T09:10:00Z',
-    note: 'Brief exchange at the central platform. Contact left on the southbound line.',
-  },
-  {
-    personName: 'Sara Voss',
-    personAvatar: 'https://i.pravatar.cc/150?img=47',
-    seenWith: 'Elias Vance',
-    coordinates: [39.94, 32.852],
-    location: 'Kizilay Control Point',
-    timestamp: '2026-04-18T08:45:00Z',
-    note: 'Spotted reviewing documents together at an outdoor café adjacent to the square.',
-  },
-]
 
 const pinIcon = divIcon({
   html: `<div style="display:flex;flex-direction:column;align-items:center;">
@@ -59,10 +55,14 @@ const pinIcon = divIcon({
 })
 
 function RouteComponent() {
+  const sightings = Route.useLoaderData()
+  const center: [number, number] =
+    sightings.length > 0 ? sightings[0].coordinates : [39.9334, 32.8597]
+
   return (
     <main className="relative h-[calc(100vh-var(--header-height,57px))] w-full">
       <MapContainer
-        center={[39.9334, 32.8597]}
+        center={center}
         zoom={13}
         className="h-full w-full"
         zoomControl={true}
@@ -71,7 +71,7 @@ function RouteComponent() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {DEMO_SIGHTINGS.map((sighting) => (
+        {sightings.map((sighting) => (
           <Marker
             key={`${sighting.personName}-${sighting.timestamp}`}
             position={sighting.coordinates}

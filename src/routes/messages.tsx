@@ -6,44 +6,47 @@ import { MessageCardContent } from '#/components/MessageCard'
 import type { MessageCardData } from '#/components/MessageCard'
 
 export const Route = createFileRoute('/messages')({
+  loader: async () => {
+    const res = await fetch(
+      'https://api.jotform.com/form/261065765723966/submissions?apikey=ad39735f1449a6dc28d60e0921352665',
+    )
+    const json = await res.json()
+    const messages: MessageCardData[] = (json.content ?? []).map(
+      (submission: {
+        answers: Record<string, { name: string; answer?: string }>
+      }) => {
+        const byName = (name: string) =>
+          Object.values(submission.answers).find((a) => a.name === name)
+            ?.answer ?? ''
+
+        const senderName = byName('senderName')
+        const rawCoords = byName('coordinates')
+        const [lat, lng] = rawCoords.split(',').map(Number)
+        const urgencyRaw = byName('urgency') as MessageCardData['urgency']
+
+        return {
+          senderName,
+          senderInitials: senderName
+            .split(' ')
+            .map((w: string) => w[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2),
+          recipientName: byName('recipientName'),
+          coordinates: [lat, lng] as [number, number],
+          location: byName('location'),
+          timestamp: byName('timestamp'),
+          text: byName('text'),
+          urgency: ['low', 'medium', 'high'].includes(urgencyRaw ?? '')
+            ? urgencyRaw
+            : undefined,
+        } satisfies MessageCardData
+      },
+    )
+    return { messages }
+  },
   component: RouteComponent,
 })
-
-const DEMO_MESSAGES: MessageCardData[] = [
-  {
-    senderName: 'Aidan Thorne',
-    senderAvatar: 'https://i.pravatar.cc/150?img=8',
-    senderInitials: 'AT',
-    recipientName: 'Sara Voss',
-    coordinates: [39.9334, 32.8597],
-    location: 'Ankara Citadel',
-    timestamp: '2026-04-18T10:24:00Z',
-    text: 'Frequency anomaly detected near sector 7. Proceeding with caution.',
-    urgency: 'high',
-  },
-  {
-    senderName: 'Elias Vance',
-    senderAvatar: 'https://i.pravatar.cc/150?img=30',
-    senderInitials: 'EV',
-    recipientName: 'Aidan Thorne',
-    coordinates: [39.925, 32.866],
-    location: 'Ankara Metro Hub',
-    timestamp: '2026-04-18T09:10:00Z',
-    text: 'Arrived at metro hub. Awaiting further instructions.',
-    urgency: 'normal',
-  },
-  {
-    senderName: 'Sara Voss',
-    senderAvatar: 'https://i.pravatar.cc/150?img=47',
-    senderInitials: 'SV',
-    recipientName: 'Elias Vance',
-    coordinates: [39.94, 32.852],
-    location: 'Kizilay Control Point',
-    timestamp: '2026-04-18T08:45:00Z',
-    text: 'Signal deck sweep completed. All clear on my end.',
-    urgency: 'low',
-  },
-]
 
 const pinIcon = divIcon({
   html: `<div style="display:flex;flex-direction:column;align-items:center;">
@@ -65,6 +68,8 @@ const pinIcon = divIcon({
 })
 
 function RouteComponent() {
+  const { messages } = Route.useLoaderData()
+
   return (
     <main className="relative h-[calc(100vh-var(--header-height,57px))] w-full">
       <MapContainer
@@ -77,7 +82,7 @@ function RouteComponent() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {DEMO_MESSAGES.map((message) => (
+        {messages.map((message) => (
           <Marker
             key={`${message.senderName}-${message.timestamp}`}
             position={message.coordinates}

@@ -5,39 +5,50 @@ import 'leaflet/dist/leaflet.css'
 import { NotesCardContent } from '#/components/NotesCard'
 import type { NotesCardData } from '#/components/NotesCard'
 
+const FORM_ID = '261065509008958'
+const API_KEY = 'ad39735f1449a6dc28d60e0921352665'
+
+async function fetchNotes(): Promise<NotesCardData[]> {
+  const res = await fetch(
+    `https://api.jotform.com/form/${FORM_ID}/submissions?apikey=${API_KEY}&limit=100`,
+  )
+  const data = await res.json()
+
+  return (data.content ?? [])
+    .map((submission: Record<string, unknown>) => {
+      const answers = submission.answers as Record<string, { name: string; answer?: string }>
+
+      const get = (name: string) =>
+        Object.values(answers).find((a) => a.name === name)?.answer ?? ''
+
+      const rawCoords = get('coordinates')
+      const parts = rawCoords.split(',').map(Number)
+      const coordinates: [number, number] =
+        parts.length === 2 && !parts.some(Number.isNaN)
+          ? [parts[0], parts[1]]
+          : [39.9334, 32.8597]
+
+      const rawMentioned = get('mentionedPeople')
+      const mentionedPeople = rawMentioned
+        ? rawMentioned.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : []
+
+      return {
+        authorName: get('authorName') || 'Unknown',
+        timestamp: get('timestamp'),
+        location: get('location'),
+        coordinates,
+        note: get('note'),
+        mentionedPeople,
+      } satisfies NotesCardData
+    })
+    .filter((n: NotesCardData) => n.authorName !== 'Unknown' || n.note)
+}
+
 export const Route = createFileRoute('/notes')({
+  loader: fetchNotes,
   component: RouteComponent,
 })
-
-const DEMO_NOTES: NotesCardData[] = [
-  {
-    authorName: 'Aidan Thorne',
-    authorAvatar: 'https://i.pravatar.cc/150?img=8',
-    coordinates: [39.9334, 32.8597],
-    location: 'Ankara Citadel',
-    timestamp: '2026-04-18T10:24:00Z',
-    note: 'Unusual activity near the east gate. Two individuals lingered for over 20 minutes before departing on foot heading north.',
-    mentionedPeople: ['Sara Voss', 'Elias Vance'],
-  },
-  {
-    authorName: 'Elias Vance',
-    authorAvatar: 'https://i.pravatar.cc/150?img=30',
-    coordinates: [39.925, 32.866],
-    location: 'Ankara Metro Hub',
-    timestamp: '2026-04-18T09:10:00Z',
-    note: 'Package exchange observed at platform 3. Contact departed southbound, suspect boarded the same train one stop later.',
-    mentionedPeople: ['Unknown contact'],
-  },
-  {
-    authorName: 'Sara Voss',
-    authorAvatar: 'https://i.pravatar.cc/150?img=47',
-    coordinates: [39.94, 32.852],
-    location: 'Kizilay Control Point',
-    timestamp: '2026-04-18T08:45:00Z',
-    note: 'Documents reviewed at outdoor table, northeast corner. Both subjects appeared to be cross-referencing printed maps.',
-    mentionedPeople: ['Elias Vance'],
-  },
-]
 
 const pinIcon = divIcon({
   html: `<div style="display:flex;flex-direction:column;align-items:center;">
@@ -59,6 +70,8 @@ const pinIcon = divIcon({
 })
 
 function RouteComponent() {
+  const notes = Route.useLoaderData()
+
   return (
     <main className="relative h-[calc(100vh-var(--header-height,57px))] w-full">
       <MapContainer
@@ -71,7 +84,7 @@ function RouteComponent() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {DEMO_NOTES.map((note) => (
+        {notes.map((note) => (
           <Marker
             key={`${note.authorName}-${note.timestamp}`}
             position={note.coordinates}
