@@ -9,11 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SightingsRouteImport } from './routes/sightings'
+import { Route as NotesRouteImport } from './routes/notes'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
 
+const SightingsRoute = SightingsRouteImport.update({
+  id: '/sightings',
+  path: '/sightings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesRoute = NotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
@@ -39,12 +51,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/messages': typeof MessagesRoute
+  '/notes': typeof NotesRoute
+  '/sightings': typeof SightingsRoute
   '/profile/$userId': typeof ProfileUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/messages': typeof MessagesRoute
+  '/notes': typeof NotesRoute
+  '/sightings': typeof SightingsRoute
   '/profile/$userId': typeof ProfileUserIdRoute
 }
 export interface FileRoutesById {
@@ -52,25 +68,62 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/messages': typeof MessagesRoute
+  '/notes': typeof NotesRoute
+  '/sightings': typeof SightingsRoute
   '/profile/$userId': typeof ProfileUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/messages' | '/profile/$userId'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/messages'
+    | '/notes'
+    | '/sightings'
+    | '/profile/$userId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/messages' | '/profile/$userId'
-  id: '__root__' | '/' | '/about' | '/messages' | '/profile/$userId'
+  to:
+    | '/'
+    | '/about'
+    | '/messages'
+    | '/notes'
+    | '/sightings'
+    | '/profile/$userId'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/messages'
+    | '/notes'
+    | '/sightings'
+    | '/profile/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   MessagesRoute: typeof MessagesRoute
+  NotesRoute: typeof NotesRoute
+  SightingsRoute: typeof SightingsRoute
   ProfileUserIdRoute: typeof ProfileUserIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sightings': {
+      id: '/sightings'
+      path: '/sightings'
+      fullPath: '/sightings'
+      preLoaderRoute: typeof SightingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes': {
+      id: '/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof NotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/messages': {
       id: '/messages'
       path: '/messages'
@@ -106,6 +159,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   MessagesRoute: MessagesRoute,
+  NotesRoute: NotesRoute,
+  SightingsRoute: SightingsRoute,
   ProfileUserIdRoute: ProfileUserIdRoute,
 }
 export const routeTree = rootRouteImport

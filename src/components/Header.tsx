@@ -64,21 +64,19 @@ export default function Header() {
             Messages
           </Link>
           <Link
-            to="/profile/$userId"
-            params={{ userId: 'aidan-thorne' }}
+            to="/notes"
             className="nav-link"
             activeProps={{ className: 'nav-link is-active' }}
           >
-            Profile
+            Personal Notes
           </Link>
-          <a
-            href="https://tanstack.com/start/latest/docs/framework/react/overview"
+          <Link
+            to="/sightings"
             className="nav-link"
-            target="_blank"
-            rel="noreferrer"
+            activeProps={{ className: 'nav-link is-active' }}
           >
-            Docs
-          </a>
+            Sightings
+          </Link>
         </div>
       </nav>
     </header>
